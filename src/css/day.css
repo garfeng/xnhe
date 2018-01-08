@@ -1,0 +1,21 @@
+html,
+body,
+.img-thumbnail,
+.table .table,
+.form-control,
+.form-control:focus,
+select.form-control:focus::-ms-value,
+.dropdown-menu,
+.custom-select:focus::-ms-value,
+.custom-file-label,
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link,
+.card,
+.list-group-item,
+.list-group-item.disabled,
+.list-group-item:disabled,
+.modal-content,
+.popover,
+.carousel-indicators .active {
+    background-color: #FFF;
+}

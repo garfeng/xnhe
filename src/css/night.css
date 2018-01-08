@@ -1,0 +1,72 @@
+html,
+body {
+    background-color: #232930;
+}
+
+.img-thumbnail {
+    background-color: #232930;
+}
+
+.table .table {
+    background-color: #232930;
+}
+
+.form-control {
+    background-color: #232930;
+}
+
+.form-control:focus {
+    background-color: #232930;
+}
+
+select.form-control:focus::-ms-value {
+    background-color: #232930;
+}
+
+.dropdown-menu {
+    background-color: #232930;
+}
+
+.custom-select:focus::-ms-value {
+    background-color: #232930;
+}
+
+.custom-file-label {
+    background-color: #232930;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #232930;
+}
+
+.nav-tabs .nav-item.show .nav-link {
+    background-color: #232930;
+}
+
+.card {
+    background-color: #232930;
+}
+
+.list-group-item {
+    background-color: #232930;
+}
+
+.list-group-item.disabled {
+    background-color: #232930;
+}
+
+.list-group-item:disabled {
+    background-color: #232930;
+}
+
+.modal-content {
+    background-color: #232930;
+}
+
+.popover {
+    background-color: #232930;
+}
+
+.carousel-indicators .active {
+    background-color: #232930;
+}
