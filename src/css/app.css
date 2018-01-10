@@ -1,0 +1,50 @@
+.flex{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+}
+
+.one-character{
+padding:0.1rem;
+width:4rem;
+height:5rem;
+text-align:center;
+}
+
+@-webkit-keyframes progress-current {
+  from {
+    border-bottom: 2px solid #6CC3D5;
+  }
+  50% {
+    border-bottom: 2px solid transparent;
+  }
+  to {
+      border-bottom: 2px solid #6CC3D5;
+    }
+
+}
+
+@keyframes progress-current {
+  from {
+    border-bottom: 2px solid #6CC3D5;
+  }
+  50% {
+    border-bottom: 2px solid transparent;
+  }
+  to {
+      border-bottom: 2px solid #6CC3D5;
+    }
+}
+
+.current-chatacter{
+  background-color: transparent;
+  background-image: none;
+  /*
+   border-radius: 0.4rem;
+   border: 1px solid #6CC3D5;*/
+
+  -webkit-animation: progress-current 1s linear infinite;
+  nimation: progress-current 1s linear infinite;
+}
