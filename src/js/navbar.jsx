@@ -1,16 +1,17 @@
 import React, { Component } from "react";
-import { Nav, Navbar, NavItem, NavbarBrand, NavLink } from "reactstrap";
+import { Nav, Navbar, NavItem, NavbarBrand } from "reactstrap";
+import { NavLink } from "react-router-dom";
 
 class GNavbar extends Component {
   render() {
     return (
-      <Navbar color="primary" light expand="md">
-        <NavbarBrand>
-          Hello world
-        </NavbarBrand>
-        <Nav>
+      <Navbar color="primary" dark expand="md">
+        <NavLink className="navbar-brand" activeClassName="active" to="/">
+          Home
+          </NavLink>
+        <Nav className="mr-auto" navbar>
           <NavItem>
-            <NavLink href="http://baidu.com">baidu</NavLink>
+            <NavLink className="nav-link" activeClassName="active" to="/grade">Grade</NavLink>
           </NavItem>
         </Nav>
       </Navbar>

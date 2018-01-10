@@ -19,13 +19,21 @@ class Index extends Component {
   render() {
     return (
       <Router>
-        <Container fluid={true}>
+        <div>
           <Navbar />
-          <Row>
-            <Col xs={12} sm={9}>left</Col>
-            <Col xs={12} sm={3}>right</Col>
-          </Row>
-        </Container>
+          <p></p>
+          <p></p>
+          <Container fluid={true}>
+            <Row>
+              <Col sm={12} md={{ size: 8, offset: 1 }}>
+                <Left />
+              </Col>
+              <Col sm={12} md={2}>
+                <Right />
+              </Col>
+            </Row>
+          </Container>
+        </div>
       </Router>
     );
   }
