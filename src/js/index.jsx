@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import registerServiceWorker from './registerServiceWorker';
 import { HashRouter as Router, Route, Link } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 
@@ -25,7 +24,7 @@ class Index extends Component {
           <p></p>
           <Container fluid={true}>
             <Row>
-              <Col sm={12} md={{ size: 8, offset: 1 }}>
+              <Col sm={12} md={{ size: 8, offset: 2 }}>
                 <Left />
               </Col>
               <Col sm={12} md={2}>
@@ -40,4 +39,8 @@ class Index extends Component {
 }
 
 ReactDOM.render(<Index />, document.getElementById('root'));
+
+/*
+import registerServiceWorker from './registerServiceWorker';
 registerServiceWorker();
+*/

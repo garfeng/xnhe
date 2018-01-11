@@ -48,3 +48,25 @@ text-align:center;
   -webkit-animation: progress-current 1s linear infinite;
   nimation: progress-current 1s linear infinite;
 }
+
+.keyboard-container{
+
+}
+
+.key-line{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+}
+
+.key-button {
+  flex-grow: 1;
+  flex-shrink:1;
+  margin:0.1rem;
+
+  /*width: 3rem;
+  height: 3rem;
+  */
+}

@@ -3,14 +3,17 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "es6-promise": "^4.2.2",
-        "isomorphic-fetch": "^2.2.1",
         "react": "^16.2.0",
         "react-dom": "^16.2.0",
         "react-router": "^4.2.0",
         "react-router-dom": "^4.2.2",
-        "react-scripts": "1.0.17",
-        "reactstrap": "^5.0.0-alpha.4"
+        "reactstrap": "^5.0.0-alpha.4",
+        "react-scripts": "1.0.17"
+    },
+    "devDependencies": {
+        "babel-loader": "^7.1.2",
+        "babel-preset-react": "^6.24.1",
+        "css-loader": "^0.28.8"
     },
     "scripts": {
         "start": "react-scripts start",
