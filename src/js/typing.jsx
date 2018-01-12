@@ -58,6 +58,7 @@ class Text extends Component {
     this.parseDict();
     this.update();
 
+    this.saveGrade = this.saveGrade.bind(this);
     this.OneCharacter = this.OneCharacter.bind(this);
     this.onInput = this.onInput.bind(this);
     this.randid = 0;
@@ -101,6 +102,10 @@ class Text extends Component {
     }
   }
 
+  saveGrade(){
+    
+  }
+
   update() {
     const text = this.text();
     this.state.text = [];
@@ -123,6 +128,7 @@ class Text extends Component {
     this.state.currentIndex = 0;
     this.state.currentIndexOfAllSP = 0;
     this.state.netShouldBe = this.state.allSP[0];
+    this.saveGrade();
   }
 
   randId(){
@@ -176,7 +182,13 @@ class OneLine extends Component{
     if(typeof this.props.current[code] != "undefined"){
       outline = false;
     }
-    return <Button className="key-button " key={code}  outline={outline} color="secondary">{code}</Button>
+    let className;
+    if(code != "_"){
+      className = "key-button";
+    } else {
+      className = "key-space";
+    }
+    return <Button className={className} key={code}  outline={outline} color="secondary">{code} ch</Button>
   }
   
   render(){
@@ -194,7 +206,7 @@ class Keyboard extends Component {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
 
-    this.lines = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+    this.lines = ["QWERTYUIOP","_ASDFGHJKL_","__ZXCVBNM____"];
     this.state = {
       current:{}
     };
@@ -214,13 +226,13 @@ class Keyboard extends Component {
   }
 
   render() {
-    return <Card outline color="primary" style={{padding:"0.5rem"}}>
+    return <Card outline className="keyboard" color="primary" style={{padding:"0.5rem"}}>
     <Card outline color="secondary">
     <CardBody>
 
-        <OneLine codes={this.lines[0]} current={this.state.current}/>
-        <OneLine codes={this.lines[1]} style={{marginLeft:"1.6rem",marginRight:"1.6rem"}} current={this.state.current}/>
-        <OneLine codes={this.lines[2]} style={{marginLeft:"3.2rem",marginRight:"6.4rem"}} current={this.state.current} />
+        <OneLine codes={this.lines[0]}  current={this.state.current}/>
+        <OneLine codes={this.lines[1]}  current={this.state.current}/>
+        <OneLine codes={this.lines[2]}  current={this.state.current} />
         <input onKeyUp={this.onKeyUp} onKeyDown={this.onKeyDown}/>
     </CardBody>
 

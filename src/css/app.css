@@ -53,6 +53,11 @@ text-align:center;
 
 }
 
+.keyboard:hover{
+  background-color: #5eb69d;
+  cursor: pointer;
+}
+
 .key-line{
     display: flex;
     flex-direction: row;
@@ -62,11 +67,16 @@ text-align:center;
 }
 
 .key-button {
-  flex-grow: 1;
-  flex-shrink:1;
+  flex:2 1 4rem;
   margin:0.1rem;
 
   /*width: 3rem;
   height: 3rem;
   */
+}
+
+.key-space {
+  flex:1 1 2rem;
+  margin:0rem;
+  opacity: 0;
 }
