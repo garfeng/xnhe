@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 
 class GNavbar extends Component {
   render() {
+    return null;
     return (
       <Navbar color="primary" dark expand="md">
         <NavLink className="navbar-brand" activeClassName="active" to="/">

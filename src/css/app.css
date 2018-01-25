@@ -7,10 +7,10 @@
 }
 
 .one-character{
-padding:0.1rem;
-width:4rem;
-height:5rem;
-text-align:center;
+  padding:0.2rem;
+  width:1.5rem;
+  height:1.8rem;
+  text-align:center;
 }
 
 @-webkit-keyframes progress-current {

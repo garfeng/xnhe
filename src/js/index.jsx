@@ -24,10 +24,10 @@ class Index extends Component {
           <p></p>
           <Container fluid={true}>
             <Row>
-              <Col sm={12} md={{ size: 8, offset: 2 }}>
+              <Col xs={12} sm={12} md={12} lg={{ size: 6, offset: 3 }}>
                 <Left />
               </Col>
-              <Col sm={12} md={2}>
+              <Col xs={12} sm={12} md={12} lg={3}>
                 <Right />
               </Col>
             </Row>
