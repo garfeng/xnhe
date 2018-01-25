@@ -7,7 +7,7 @@ import Config from "./config";
 class Left extends Component {
   render() {
     return (
-      <div>
+      <div className="height-100">
         <Route exact path="/" component={Typing} />
         <Route exact path="/grade" component={Grade} />
         <Route exact path="/config" component={Config} />

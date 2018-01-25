@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Button, Card, CardBody, CardHeader } from "reactstrap";
+import { Button, Card, CardBody, CardHeader, FormText } from "reactstrap";
 import words from './words';
+import db from './storage';
 
 class OneCharacter extends Component {
   constructor(props) {
@@ -45,7 +46,7 @@ class Text extends Component {
       errorNumber: 0,
       length: 0
     };
-    this.wordsSelect = "";
+    this.wordsSelect = db.getItem("wordsSelect") || "";
     this.currentIndexInArticle = 0;
     this.update();
   }
@@ -53,6 +54,7 @@ class Text extends Component {
     let len = Math.max(this.wordsSelect.length + 1, 5);
     len = Math.min(len, words.length);
     this.wordsSelect = words.substr(0, len + 1);
+    db.setItem("wordsSelect", this.wordsSelect);
   }
   selectFromWords() {
     let res = "";
@@ -69,7 +71,9 @@ class Text extends Component {
     const num = this.props.wdLen || 10;
     let selectNum = 0;
     let res = "";
-    while (selectNum < num) {
+    let findNum = 0
+    while (selectNum < num && findNum < this.props.article.length) {
+      findNum++;
       this.currentIndexInArticle++;
       if (this.currentIndexInArticle >= this.props.article.length) {
         this.currentIndexInArticle = 0;
@@ -80,6 +84,9 @@ class Text extends Component {
         selectNum++;
       }
     }
+    if (findNum >= this.props.article.length) {
+      return this.selectFromWords();
+    }
 
     return res;
   }
@@ -87,7 +94,8 @@ class Text extends Component {
     if (!this.props.article) {
       return this.selectFromWords();
     }
-    return this.props.selectFromArticle();
+    return this.selectFromArticle();
+    //    return this.selectFromArticle();
   }
   text() {
     if (this.props.currentGrade >= this.props.goalSpeed || this.wordsSelect.length < 5) {
@@ -138,7 +146,6 @@ class Text extends Component {
       text[i] = zi;
     }
     if (code.length == this.state.text.length && allOk) {
-      console.log("reset now");
       this.props.onReset(this.grade);
       this.update();
       return;
@@ -147,10 +154,17 @@ class Text extends Component {
   }
 
   render() {
-    return <Card outline color="primary">
+    const helpInfo = this.props.article ? "从文章中选择以下文字：" : "随机选择以下文字：";
+    return <Card>
       <CardHeader>文本</CardHeader>
-      <CardBody className="flex">
-        {this.state.text.map(this.OneCharacter)}
+      <CardBody>
+        <div className="flex">
+          {this.state.text.map(this.OneCharacter)}
+        </div>
+        <hr />
+        <FormText color="muted">
+          {helpInfo} {this.wordsSelect}
+        </FormText>
       </CardBody>
     </Card>
   }
@@ -178,7 +192,7 @@ class Keyboard extends Component {
   onChange(e) {
     this.setState({ value: e.target.value })
     let v = e.target.value;
-    v = v.replace(/[a-z]+/ig, "");
+    v = v.replace(/[a-z|\ ]+/ig, "");
     this.props.onInput(v);
   }
 
@@ -188,7 +202,7 @@ class Keyboard extends Component {
   }
 
   render() {
-    return <Card outline color="primary">
+    return <Card>
       <textarea className="form-control" style={{
         width: "100%", height: "200px", minWidth: "100%", minHeight: "200px", maxWidth: "100%"
       }} onKeyDown={this.onKeyDown} onChange={this.onChange} value={this.state.value} ref="input" />
@@ -206,7 +220,10 @@ class Typing extends Component {
     this.updateGrade = this.updateGrade.bind(this);
 
     this.state = {
-      currentGrade: 0
+      currentGrade: 0,
+      goalSpeed: parseInt(db.getItem("goalSpeed")) || 1,
+      wdLen: parseInt(db.getItem("currentLen")) || 10,
+      article: db.getItem("article") || ""
     }
   }
 
@@ -238,8 +255,8 @@ class Typing extends Component {
 
   render() {
     return (
-      <div>
-        <Text currentGrade={this.state.currentGrade} goalSpeed={this.props.goalSpeed || 2} article={this.props.article} wdLen={this.props.wdLen} ref="text" onReset={this.onReset} />
+      <div className="flex-center">
+        <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
         <br />
         <Keyboard ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
         <br />
@@ -253,8 +270,9 @@ class CurrentGrade extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      speed: 0,
-      error: 0
+      speed: parseFloat(db.getItem("speed") || "0"),
+      error: parseFloat(db.getItem("error") || "0"),
+      wordsSpeed: parseFloat(db.getItem("wordsSpeed") || "0")
     };
     this.currentGrade = {
       startTime: 0,
@@ -280,7 +298,6 @@ class CurrentGrade extends Component {
   onKeyDown() {
     const current = this.currentTime();
     const keyNum = this.currentGrade.keyNum + 1;
-    console.log(keyNum, current - this.currentGrade.startTime);
     const speed = keyNum * 1000 / (current - this.currentGrade.startTime);
 
     Object.assign(this.currentGrade, {
@@ -292,12 +309,35 @@ class CurrentGrade extends Component {
     this.props.onGradeUpdate(speed);
   }
 
+  saveGradeList(data) {
+    const str = db.getItem("history") || "[]";
+    const saveData = Object.assign({ time: this.currentTime() }, data);
+    let arr = JSON.parse(str) || [];
+    arr.push(saveData);
+    const output = JSON.stringify(arr);
+
+    db.setItem("history", output);
+  }
+
   onEnd(grade) {
     this.onKeyDown();
-    this.setState({
+    const error = grade.errorNumber / grade.length;
+    const current = this.currentTime();
+
+    const data = {
       speed: this.currentGrade.speed,
-      error: grade.errorNumber / grade.length
-    });
+      error: error,
+      wordsSpeed: grade.length * 1000 * 60 / (current - this.currentGrade.startTime)
+    };
+
+    this.setState(data);
+
+    db.setItem("speed", this.currentGrade.speed.toString());
+    db.setItem("error", error.toString());
+    db.setItem("wordsSpeed", data.wordsSpeed.toString());
+
+    this.saveGradeList(data);
+
     Object.assign(this.currentGrade, {
       startTime: 0,
       endTime: 0,
@@ -306,10 +346,11 @@ class CurrentGrade extends Component {
   }
 
   render() {
-    return <Card outline color="primary">
+    return <Card>
       <CardHeader>成绩</CardHeader>
       <CardBody className="flex">
-        速度：{parseInt(this.state.speed * 100) / 100} {" "}
+        速度(击键)：{parseInt(this.state.speed * 100) / 100} {" | "}
+        速度(字)：{parseInt(this.state.wordsSpeed * 100) / 100} {" | "}
         错误：{parseInt(this.state.error * 100)}%
       </CardBody>
     </Card>
