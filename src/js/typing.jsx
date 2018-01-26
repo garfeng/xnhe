@@ -62,7 +62,8 @@ class Text extends Component {
     const num = this.props.wdLen || 10;
 
     for (let i = 0; i < num; i++) {
-      const index = parseInt((Math.random() * 100)) % wdLen;
+      const index = Math.min(wdLen - 1, parseInt(Math.random() * wdLen));
+
       res = res + this.wordsSelect[index];
     }
     return res;
