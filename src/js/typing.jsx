@@ -174,6 +174,7 @@ class Text extends Component {
   }
 
   calculateOk() {
+    console.log(this.everyWordsCount);
     const text = Object.assign([], this.state.text);
     for (let i = 0; i < text.length; i++) {
       const c = text[i].c;
@@ -181,7 +182,7 @@ class Text extends Component {
       this.everyWordsCount[c] = (this.everyWordsCount[c] || 0) + 1;
       this.everyWordsProb[c][1]++;
 
-      if (this.everyWordsError[c]) {
+      if (this.everyWordsError[i]) {
         if (this.everyWordsProb[c][1] > 50) {
           this.everyWordsProb[c][1] = 50;
           this.everyWordsProb[c][0]--;
@@ -221,7 +222,7 @@ class Text extends Component {
       allOk = allOk && zi.ok;
       if (!zi.ok) {
         this.grade.errorNumber += 1;
-        this.everyWordsError[c] = true;
+        this.everyWordsError[i] = true;
       }
 
       text[i] = zi;
