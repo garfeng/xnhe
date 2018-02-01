@@ -42,11 +42,11 @@ class Config extends Component {
     this.selectLen = this.selectLen.bind(this);
     this.onInputArticle = this.onInputArticle.bind(this);
     this.triggerNight = this.triggerNight.bind(this);
+    this.modeMap = ["可爱", "日间", "夜间", "木板墙"];
   }
 
   triggerNight(d) {
-    const modeMap = ["可爱", "日间", "夜间"];
-    const index = Math.max(modeMap.indexOf(d), 0);
+    const index = Math.max(this.modeMap.indexOf(d), 0);
     this.setState({ night: index });
     db.setItem("night", index.toString());
     window.forceUpdate();
@@ -63,15 +63,16 @@ class Config extends Component {
   }
 
   selectSpeed(d) {
+    if (this.state.goalSpeed < d) {
+      db.setItem("wordsSelect", "");
+    }
     this.setState({ goalSpeed: d });
     db.setItem("goalSpeed", d.toString());
-    db.setItem("wordsSelect", "");
   }
 
   render() {
     const speedMap = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const lenMap = [10, 20, 30, 50, 100, 200, 500];
-    const modeMap = ["可爱", "日间", "夜间"];
 
     return (<Card>
       <CardHeader>设置</CardHeader>
@@ -87,7 +88,7 @@ class Config extends Component {
             <Input style={{ height: 200 }} type="textarea" id="article" value={this.state.article} onChange={this.onInputArticle} />
           </OneInputLine>
           <OneInputLine _id="night" name="模式">
-            {modeMap.map(d => <SelectButton onClick={this.triggerNight} currentValue={modeMap[this.state.night]} value={d} key={d} />)}
+            {this.modeMap.map(d => <SelectButton onClick={this.triggerNight} currentValue={this.modeMap[this.state.night]} value={d} key={d} />)}
           </OneInputLine>
         </Form>
       </CardBody>

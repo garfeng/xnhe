@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Card, CardBody, CardHeader, FormText } from "reactstrap";
+import { Button, Card, CardBody, CardHeader, FormText, UncontrolledTooltip } from "reactstrap";
 import words from './words';
 import db from './storage';
 
@@ -42,29 +42,62 @@ class Text extends Component {
     this.saveGrade = this.saveGrade.bind(this);
     this.OneCharacter = this.OneCharacter.bind(this);
     this.onInput = this.onInput.bind(this);
+    this.OneProbC = this.OneProbC.bind(this);
     this.grade = {
       errorNumber: 0,
       length: 0
     };
     this.wordsSelect = db.getItem("wordsSelect") || "";
+
+    this.everyWordsProb = JSON.parse(db.getItem("wordsProbs") || "{}") || {};
+    this.everyWordsCount = {};
+    this.everyWordsError = [];
+
     this.currentIndexInArticle = 0;
+    this.updateProb();
     this.update();
   }
+
+  updateProb() {
+    let obj = {}
+    const text = this.wordsSelect.split("");
+    text.map(d => obj[d] = [0, 0]);
+    Object.assign(obj, this.everyWordsProb);
+    this.everyWordsProb = obj;
+    db.setItem("wordsProbs", JSON.stringify(obj));
+    this.everyWordsCount = {};
+  }
+
   updateWordsSelect() {
     let len = Math.max(this.wordsSelect.length + 1, 5);
     len = Math.min(len, words.length);
     this.wordsSelect = words.substr(0, len + 1);
     db.setItem("wordsSelect", this.wordsSelect);
+    this.updateProb();
   }
+
+  isWordOk(c) {
+    const dCount = this.everyWordsCount[c] || 0;
+    const prob = this.everyWordsProb[c] || [0, 0];
+    const probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
+    console.log(probPercent, dCount);
+    return probPercent > 180 && dCount > 10;
+  }
+
   selectFromWords() {
     let res = "";
     let wdLen = this.wordsSelect.length || 1;
     const num = this.props.wdLen || 10;
+    let i = 0;
 
-    for (let i = 0; i < num; i++) {
+    while (i < num) {
       const index = Math.min(wdLen - 1, parseInt(Math.random() * wdLen));
-
-      res = res + this.wordsSelect[index];
+      const c = this.wordsSelect[index];
+      console.log(c, this.isWordOk(c));
+      if (!this.isWordOk(c)) {
+        res = res + c;
+        i++;
+      }
     }
     return res;
   }
@@ -81,8 +114,10 @@ class Text extends Component {
       }
       const c = this.props.article[this.currentIndexInArticle];
       if (this.wordsSelect.indexOf(c) >= 0) {
-        res = res + c;
-        selectNum++;
+        if (!this.isWordOk(c)) {
+          res = res + c;
+          selectNum++;
+        }
       }
     }
     if (findNum >= this.props.article.length) {
@@ -100,7 +135,16 @@ class Text extends Component {
   }
   text() {
     if (this.props.currentGrade >= this.props.goalSpeed || this.wordsSelect.length < 5) {
-      this.updateWordsSelect();
+      let allOk = true;
+      for (let i = 0; i < this.wordsSelect.length; i++) {
+        if (!this.isWordOk(this.wordsSelect[i])) {
+          allOk = false;
+          break;
+        }
+      }
+      if (allOk) {
+        this.updateWordsSelect();
+      }
     }
     return this.selectArticle();
   }
@@ -111,6 +155,8 @@ class Text extends Component {
 
   update() {
     const text = this.text();
+    this.everyWordsError = [];
+
     this.state.text = [];
     let index = 0;
 
@@ -125,6 +171,25 @@ class Text extends Component {
 
   OneCharacter(c) {
     return <OneCharacter key={`index_${c.index}`} c={c} current={this.state.currentIndex == c.index} />
+  }
+
+  calculateOk() {
+    const text = Object.assign([], this.state.text);
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i].c;
+
+      this.everyWordsCount[c] = (this.everyWordsCount[c] || 0) + 1;
+      this.everyWordsProb[c][1]++;
+
+      if (this.everyWordsError[c]) {
+        this.everyWordsProb[c][0]--;
+      } else {
+        this.everyWordsProb[c][0]++;
+      }
+    }
+
+    db.setItem("wordsProbs", JSON.stringify(this.everyWordsProb));
+
   }
 
   onInput(code) {
@@ -142,11 +207,13 @@ class Text extends Component {
       allOk = allOk && zi.ok;
       if (!zi.ok) {
         this.grade.errorNumber += 1;
+        this.everyWordsError[c] = true;
       }
 
       text[i] = zi;
     }
     if (code.length == this.state.text.length && allOk) {
+      this.calculateOk();
       this.props.onReset(this.grade);
       this.update();
       return;
@@ -154,8 +221,30 @@ class Text extends Component {
     this.setState({ text: text, currentIndex: count });
   }
 
+  OneProbC(c, i) {
+    const dCount = this.everyWordsCount[c] || 0;
+    console.log(this.everyWordsProb);
+    const prob = this.everyWordsProb[c] || [0, 0];
+    let probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
+    if (probPercent < 0) { probPercent = 0 };
+    if (probPercent > 255) { probPercent = 255 };
+
+    const color = ((255 - probPercent) << 16) | (probPercent << 8);
+
+    let colorString = `000000${color.toString(16)}`;
+
+    colorString = "#" + colorString.substr(-6);
+
+    console.log(c, colorString, probPercent);
+
+    const probPercentShow = parseInt(probPercent * 100 * 10 / 255) / 10;
+
+    return <OneProbC c={c} color={colorString} key={`index_${i}`} id={`c_${c}`} percent={probPercentShow} />;
+  }
+
   render() {
     const helpInfo = this.props.article ? "从文章中选择以下文字：" : "随机选择以下文字：";
+    const text = this.wordsSelect.split("");
     return <Card>
       <CardHeader>文本</CardHeader>
       <CardBody>
@@ -164,11 +253,35 @@ class Text extends Component {
         </div>
         <hr />
         <FormText color="muted">
-          {helpInfo} {this.wordsSelect}
+          {helpInfo} {text.map(this.OneProbC)}
         </FormText>
       </CardBody>
     </Card>
   }
+}
+
+class OneProbC extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { show: true };
+    this.toggle = this.toggle.bind(this);
+  }
+
+  toggle() {
+    this.setState({
+      state: !this.state.show
+    });
+  }
+
+  render() {
+    return (<span>
+      <a id={this.props.id} style={{ color: this.props.color, cursor: "pointer" }}>{this.props.c}</a>
+      <UncontrolledTooltip placement="top" target={this.props.id}>
+        正确率：{this.props.percent}%
+      </UncontrolledTooltip>
+    </span>);
+  }
+
 }
 
 class Keyboard extends Component {

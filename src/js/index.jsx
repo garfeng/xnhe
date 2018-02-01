@@ -21,9 +21,10 @@ class Index extends Component {
     this.updateMode = this.updateMode.bind(this);
 
     this.styleMap = [
-      "https://cdn.bootcss.com/bootswatch/4.0.0-beta.3/minty/bootstrap.min.css",
-      "https://cdn.bootcss.com/bootswatch/4.0.0-beta.3/flatly/bootstrap.min.css",
-      "https://cdn.bootcss.com/bootswatch/4.0.0-beta.3/darkly/bootstrap.min.css"
+      "https://cdn.bootcss.com/bootswatch/4.0.0/minty/bootstrap.min.css",
+      "https://cdn.bootcss.com/bootswatch/4.0.0/flatly/bootstrap.min.css",
+      "https://cdn.bootcss.com/bootswatch/4.0.0/darkly/bootstrap.min.css",
+      "https://cdn.bootcss.com/bootswatch/4.0.0/sketchy/bootstrap.min.css"
     ];
     //window.onload = this.show;
   }
