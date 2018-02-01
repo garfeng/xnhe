@@ -190,12 +190,14 @@ class Text extends Component {
           }
         }
       } else {
+        this.everyWordsProb[c][0]++;
+
         if (this.everyWordsProb[c][1] > 50) {
           this.everyWordsProb[c][1] = 50;
-          this.everyWordsProb[c][0]++;
-          if (this.everyWordsProb[c][0] > 50) {
-            this.everyWordsProb[c][0] = 50;
-          }
+        }
+
+        if (this.everyWordsProb[c][0] > 50) {
+          this.everyWordsProb[c][0] = 50;
         }
       }
     }
