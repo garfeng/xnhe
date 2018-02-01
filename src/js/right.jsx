@@ -10,6 +10,7 @@ class Right extends Component {
           <NavLink exact to="/" activeClassName="active" className="list-group-item">打字</NavLink>
           <NavLink exact to="/grade" activeClassName="active" className="list-group-item">成绩</NavLink>
           <NavLink exact to="/config" activeClassName="active" className="list-group-item">设置</NavLink>
+          <ListGroupItem tag="a" href="https://github.com/garfeng/xnhe#练习方法">帮助</ListGroupItem>
         </ListGroup>
       </div>
     );
