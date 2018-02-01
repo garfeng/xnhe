@@ -65,14 +65,17 @@ class Text extends Component {
     Object.assign(obj, this.everyWordsProb);
     this.everyWordsProb = obj;
     db.setItem("wordsProbs", JSON.stringify(obj));
-    this.everyWordsCount = {};
+    for (const key in this.everyWordsCount) {
+      this.everyWordsCount[key] /= 2;
+    }
   }
 
   updateWordsSelect() {
     let len = Math.max(this.wordsSelect.length + 1, 5);
     len = Math.min(len, words.length);
-    this.wordsSelect = words.substr(0, len + 1);
+    this.wordsSelect = words.substr(0, len);
     db.setItem("wordsSelect", this.wordsSelect);
+    console.log("updateWordsSelect")
     this.updateProb();
   }
 
@@ -80,8 +83,7 @@ class Text extends Component {
     const dCount = this.everyWordsCount[c] || 0;
     const prob = this.everyWordsProb[c] || [0, 0];
     const probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
-    console.log(probPercent, dCount);
-    return probPercent > 180 && dCount > 10;
+    return probPercent >= 180 && dCount >= 10;
   }
 
   selectFromWords() {
@@ -93,7 +95,6 @@ class Text extends Component {
     while (i < num) {
       const index = Math.min(wdLen - 1, parseInt(Math.random() * wdLen));
       const c = this.wordsSelect[index];
-      console.log(c, this.isWordOk(c));
       if (!this.isWordOk(c)) {
         res = res + c;
         i++;
@@ -175,6 +176,7 @@ class Text extends Component {
 
   calculateOk() {
     console.log(this.everyWordsCount);
+    console.log(this.everyWordsError);
     const text = Object.assign([], this.state.text);
     for (let i = 0; i < text.length; i++) {
       const c = text[i].c;
@@ -238,7 +240,6 @@ class Text extends Component {
 
   OneProbC(c, i) {
     const dCount = this.everyWordsCount[c] || 0;
-    console.log(this.everyWordsProb);
     const prob = this.everyWordsProb[c] || [0, 0];
     let probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
     if (probPercent < 0) { probPercent = 0 };
@@ -249,9 +250,6 @@ class Text extends Component {
     let colorString = `000000${color.toString(16)}`;
 
     colorString = "#" + colorString.substr(-6);
-
-    console.log(c, colorString, probPercent);
-
     const probPercentShow = parseInt(probPercent * 100 * 10 / 255) / 10;
 
     return <OneProbC c={c} color={colorString} key={`index_${i}`} id={`c_${c}`} percent={probPercentShow} />;
