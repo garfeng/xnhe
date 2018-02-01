@@ -315,6 +315,10 @@ class Keyboard extends Component {
     this.setState({ value: "" })
   }
 
+  componentDidMount() {
+    this.refs["input"].focus();
+  }
+
   render() {
     return <Card>
       <textarea className="form-control" style={{
