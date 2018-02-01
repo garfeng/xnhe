@@ -182,9 +182,21 @@ class Text extends Component {
       this.everyWordsProb[c][1]++;
 
       if (this.everyWordsError[c]) {
-        //this.everyWordsProb[c][0]--;
+        if (this.everyWordsProb[c][1] > 50) {
+          this.everyWordsProb[c][1] = 50;
+          this.everyWordsProb[c][0]--;
+          if (this.everyWordsProb[c][0] < 0) {
+            this.everyWordsProb[c][0] = 0;
+          }
+        }
       } else {
-        this.everyWordsProb[c][0]++;
+        if (this.everyWordsProb[c][1] > 50) {
+          this.everyWordsProb[c][1] = 50;
+          this.everyWordsProb[c][0]++;
+          if (this.everyWordsProb[c][0] > 50) {
+            this.everyWordsProb[c][0] = 50;
+          }
+        }
       }
     }
 
