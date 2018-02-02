@@ -72,9 +72,6 @@ class Text extends Component {
 
     for (const index in text) {
       const key = text[index];
-
-      console.log(key, this.everyWordsProb[key]);
-
       const needNum = parseInt(Math.max(text.indexOf(key) / text.length, 0.2) * 10);
       this.everyWordsCount[key] = 10 - needNum;
 
@@ -459,6 +456,24 @@ class CurrentGrade extends Component {
     const saveData = Object.assign({ time: this.currentTime() }, data);
     let arr = JSON.parse(str) || [];
     arr.push(saveData);
+    if (arr.length >= 200) {
+      const newArr = [];
+      for (let i = 0; i < arr.length; i += 2) {
+        let newObj = {};
+        const i1 = i;
+        const i2 = i1 + 1 > arr.length - 1 ? i1 : i1 + 1;
+
+        for (var key in arr[i]) {
+          newObj[key] = (arr[i1][key] + arr[i2][key]) / 2;
+        }
+
+        newObj.time = Math.floor(newObj.time);
+
+        newArr.push(newObj);
+      }
+      arr = newArr;
+    }
+
     const output = JSON.stringify(arr);
 
     db.setItem("history", output);

@@ -68,7 +68,9 @@ class Speed extends Component {
   constructor(props) {
     super(props);
     this.draw = this.draw.bind(this);
+    this.setTimeOut = this.setTimeOut.bind(this);
     this.tooltip = this.tooltip.bind(this);
+    this.chart = null;
   }
 
   tooltip(params) {
@@ -103,7 +105,7 @@ class Speed extends Component {
   }
 
   draw() {
-    const chart = echarts.init(this.refs["chart"]);
+    this.chart = echarts.init(this.refs["chart"]);
     let timeList = [];
     let speedList = [];
     let speedWordsList = [];
@@ -126,7 +128,7 @@ class Speed extends Component {
     const dData = Math.ceil((aveSpeed - aveSpeedWords / 30));
 
     const interval = ((maxSpeedWords - minSpeedWords) / (maxSpeed - minSpeed));
-    chart.setOption({
+    this.chart.setOption({
       title: {
         text: ''
       },
@@ -191,8 +193,20 @@ class Speed extends Component {
       }]
     })
   }
+
+  setTimeOut() {
+    if (this.chart != null) {
+      this.chart.resize();
+    }
+  }
   componentDidMount() {
     setTimeout(this.draw, 10);
+    window.addEventListener("resize", this.setTimeOut);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("resize", this.setTimeOut);
+
   }
   render() {
     return (<div ref="chart" style={{ width: "100%", height: 300 }}></div>);
