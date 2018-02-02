@@ -54,6 +54,9 @@ class Text extends Component {
     this.everyWordsError = [];
 
     this.currentIndexInArticle = 0;
+
+    this.wordsSelectRandom = this.wordsSelect;
+
     this.updateProb();
     this.update();
   }
@@ -65,8 +68,19 @@ class Text extends Component {
     Object.assign(obj, this.everyWordsProb);
     this.everyWordsProb = obj;
     db.setItem("wordsProbs", JSON.stringify(obj));
-    for (const key in this.everyWordsCount) {
-      this.everyWordsCount[key] /= 2;
+    this.wordsSelectRandom = "";
+
+    for (const index in text) {
+      const key = text[index];
+
+      console.log(key, this.everyWordsProb[key]);
+
+      const needNum = parseInt(Math.max(text.indexOf(key) / text.length, 0.2) * 10);
+      this.everyWordsCount[key] = 10 - needNum;
+
+      for (let i = 0; i < needNum; i++) {
+        this.wordsSelectRandom += key;
+      }
     }
   }
 
@@ -88,17 +102,19 @@ class Text extends Component {
 
   selectFromWords() {
     let res = "";
-    let wdLen = this.wordsSelect.length || 1;
+    let wdLen = this.wordsSelectRandom.length || 1;
     const num = this.props.wdLen || 10;
     let i = 0;
 
+    console.log(this.wordsSelectRandom);
+
     while (i < num) {
       const index = Math.min(wdLen - 1, parseInt(Math.random() * wdLen));
-      const c = this.wordsSelect[index];
-      if (!this.isWordOk(c)) {
-        res = res + c;
-        i++;
-      }
+      const c = this.wordsSelectRandom[index];
+      //if (!this.isWordOk(c)) {
+      res = res + c;
+      i++;
+      //}
     }
     return res;
   }
@@ -175,8 +191,6 @@ class Text extends Component {
   }
 
   calculateOk() {
-    console.log(this.everyWordsCount);
-    console.log(this.everyWordsError);
     const text = Object.assign([], this.state.text);
     for (let i = 0; i < text.length; i++) {
       const c = text[i].c;

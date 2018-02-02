@@ -52,7 +52,8 @@ module.exports = {
     'react-dom': 'ReactDOM',
     "react-router": "ReactRouter",
     "react-router-dom": "ReactRouterDOM",
-    "reactstrap": "Reactstrap"
+    "reactstrap": "Reactstrap",
+    "echarts": "echarts"
   },
   resolve: {
     extensions: ['.web.js', '.mjs', '.js', '.json', '.web.jsx', '.jsx']
