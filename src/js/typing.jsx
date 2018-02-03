@@ -325,13 +325,7 @@ class Keyboard extends Component {
     this.reset = this.reset.bind(this);
 
     this.state = {
-      value: "",
-      top: 0,
-      style: {
-        position: "relative",
-        top: 0,
-        right: 0
-      }
+      value: ""
     };
     this.start = false;
   }
@@ -356,27 +350,11 @@ class Keyboard extends Component {
     this.setState({ value: "" })
   }
 
-  componentWillUpdate() {
-    const gbY = this.props.y + 20;
-    const originY = this.refs["origin_position"].offsetTop;
-    console.log(originY);
-
-    //Object.assign(this.state.style, { abc: 0 })
-
-    if (originY > gbY) {
-      this.state.top = gbY;
-    } else {
-      this.state.top = originY;
-    }
-
-  }
-
   componentDidMount() {
     this.refs["input"].focus();
   }
 
   render() {
-    //style={{ position: "fixed", top: this.state.top }}
     return <div ref="origin_position"><div ><Card>
       <textarea className="form-control" style={{
         width: "100%", height: "200px", minWidth: "100%", minHeight: "200px", maxWidth: "100%"
@@ -399,8 +377,7 @@ class Typing extends Component {
       currentGrade: 0,
       goalSpeed: parseInt(db.getItem("goalSpeed")) || 1,
       wdLen: parseInt(db.getItem("currentLen")) || 10,
-      article: db.getItem("article") || "",
-      gbY: 1000
+      article: db.getItem("article") || ""
     }
   }
 
@@ -430,28 +407,13 @@ class Typing extends Component {
     this.refs.text.update();
   }
 
-  componentWillUpdate() {
-    const pos = document.getElementsByClassName("current-chatacter");
-    this.state.gbY = (pos ? (pos[0].offsetTop || 1000) : 1000) || 1000;
-    console.log(this.state.gbY);
-    console.log(this.state)
-  }
-
-  componentDidMount() {
-    const pos = document.getElementsByClassName("current-chatacter");
-    const gby = (pos ? (pos[0].offsetTop || 1000) : 1000) || 1000;
-    this.setState({ gbY: gby });
-    console.log(this.state.gbY);
-
-  }
-
   render() {
     console.log(this.state);
     return (
       <div className="flex-center">
         <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
         <br />
-        <Keyboard y={this.state.gbY} ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
+        <Keyboard ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
         <br />
         <CurrentGrade ref="grade" goalSpeed={this.props.goalSpeed || 2} onGradeUpdate={this.updateGrade} />
       </div>
