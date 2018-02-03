@@ -7,10 +7,12 @@
 }
 
 .one-character{
-  padding:0.2rem;
   width:1.5rem;
-  height:1.8rem;
+  height:1.6rem;
   text-align:center;
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+  margin-bottom: 0.3rem;
 }
 
 @-webkit-keyframes progress-current {

@@ -15,7 +15,7 @@ class OneCharacter extends Component {
     if (c.ok == null) {
       className = "text-muted";
     } else {
-      className = c.ok ? "text-primary" : "text-secondary";
+      className = c.ok ? "text-success" : "text-danger";
     }
 
     if (this.props.current) {
@@ -24,7 +24,7 @@ class OneCharacter extends Component {
 
     return (
       <div className={"one-character " + className}>
-        <span style={{ fontSize: "1rem" }}>
+        <span >
           {c.c}
         </span>
       </div>);
@@ -50,6 +50,9 @@ class Text extends Component {
     this.wordsSelect = db.getItem("wordsSelect") || "";
 
     this.everyWordsProb = JSON.parse(db.getItem("wordsProbs") || "{}") || {};
+
+    this.updateOldDataToNew();
+
     this.everyWordsCount = {};
     this.everyWordsError = [];
 
@@ -61,10 +64,18 @@ class Text extends Component {
     this.update();
   }
 
+  updateOldDataToNew() {
+    for (let i in this.everyWordsProb) {
+      if (typeof this.everyWordsProb[i] != "number") {
+        this.everyWordsProb[i] = this.everyWordsProb[i][0] / (this.everyWordsProb[i][1] + 1);
+      }
+    }
+  }
+
   updateProb() {
     let obj = {}
     const text = this.wordsSelect.split("");
-    text.map(d => obj[d] = [0, 0]);
+    text.map(d => obj[d] = 0.5);
     Object.assign(obj, this.everyWordsProb);
     this.everyWordsProb = obj;
     db.setItem("wordsProbs", JSON.stringify(obj));
@@ -72,7 +83,8 @@ class Text extends Component {
 
     for (const index in text) {
       const key = text[index];
-      const needNum = parseInt(Math.max(text.indexOf(key) / text.length, 0.2) * 10);
+      const needNum = Math.max(1, text.indexOf(key) + 6 - text.length);
+
       this.everyWordsCount[key] = 10 - needNum;
 
       for (let i = 0; i < needNum; i++) {
@@ -92,9 +104,8 @@ class Text extends Component {
 
   isWordOk(c) {
     const dCount = this.everyWordsCount[c] || 0;
-    const prob = this.everyWordsProb[c] || [0, 0];
-    const probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
-    return probPercent >= 180 && dCount >= 10;
+    const prob = this.everyWordsProb[c] || 0.5;
+    return prob >= 0.7 && dCount >= 10;
   }
 
   selectFromWords() {
@@ -106,7 +117,7 @@ class Text extends Component {
     console.log(this.wordsSelectRandom);
 
     while (i < num) {
-      const index = Math.min(wdLen - 1, parseInt(Math.random() * wdLen));
+      const index = Math.min(wdLen - 1, Math.floor(Math.random() * (1 + wdLen)));
       const c = this.wordsSelectRandom[index];
       //if (!this.isWordOk(c)) {
       res = res + c;
@@ -193,30 +204,27 @@ class Text extends Component {
       const c = text[i].c;
 
       this.everyWordsCount[c] = (this.everyWordsCount[c] || 0) + 1;
-      this.everyWordsProb[c][1]++;
+      const currentProb = Math.max(0, Math.min(1.0, this.everyWordsProb[c] || 0.5));
 
       if (this.everyWordsError[i]) {
-        if (this.everyWordsProb[c][1] > 50) {
-          this.everyWordsProb[c][1] = 50;
-          this.everyWordsProb[c][0]--;
-          if (this.everyWordsProb[c][0] < 0) {
-            this.everyWordsProb[c][0] = 0;
-          }
-        }
+        this.everyWordsProb[c] = currentProb * 0.9;
+        this.wordsSelectRandom += c;
       } else {
-        this.everyWordsProb[c][0]++;
-
-        if (this.everyWordsProb[c][1] > 50) {
-          this.everyWordsProb[c][1] = 50;
-        }
-
-        if (this.everyWordsProb[c][0] > 50) {
-          this.everyWordsProb[c][0] = 50;
-        }
+        this.everyWordsProb[c] = currentProb * 0.9 + 0.1;
       }
     }
 
+    for (let i = 0; i < this.wordsSelect.length; i++) {
+      const c = this.wordsSelect[i];
+      if (this.isWordOk(c)) {
+        this.wordsSelectRandom.replace(c, "");
+      } else {
+        this.wordsSelectRandom += c;
+      }
+    }
     db.setItem("wordsProbs", JSON.stringify(this.everyWordsProb));
+
+    console.log(this.everyWordsProb);
 
   }
 
@@ -251,8 +259,9 @@ class Text extends Component {
 
   OneProbC(c, i) {
     const dCount = this.everyWordsCount[c] || 0;
-    const prob = this.everyWordsProb[c] || [0, 0];
-    let probPercent = prob[1] <= 0 ? 128 : parseInt(prob[0] / prob[1] * 255);
+    const prob = this.everyWordsProb[c] || 0.5;
+    let probPercent = Math.floor(prob * 255);
+
     if (probPercent < 0) { probPercent = 0 };
     if (probPercent > 255) { probPercent = 255 };
 
@@ -315,7 +324,15 @@ class Keyboard extends Component {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.reset = this.reset.bind(this);
 
-    this.state = { value: "" };
+    this.state = {
+      value: "",
+      top: 0,
+      style: {
+        position: "relative",
+        top: 0,
+        right: 0
+      }
+    };
     this.start = false;
   }
 
@@ -339,16 +356,33 @@ class Keyboard extends Component {
     this.setState({ value: "" })
   }
 
+  componentWillUpdate() {
+    const gbY = this.props.y + 20;
+    const originY = this.refs["origin_position"].offsetTop;
+    console.log(originY);
+
+    //Object.assign(this.state.style, { abc: 0 })
+
+    if (originY > gbY) {
+      this.state.top = gbY;
+    } else {
+      this.state.top = originY;
+    }
+
+  }
+
   componentDidMount() {
     this.refs["input"].focus();
   }
 
   render() {
-    return <Card>
+    //style={{ position: "fixed", top: this.state.top }}
+    return <div ref="origin_position"><div ><Card>
       <textarea className="form-control" style={{
         width: "100%", height: "200px", minWidth: "100%", minHeight: "200px", maxWidth: "100%"
       }} onKeyDown={this.onKeyDown} onChange={this.onChange} value={this.state.value} ref="input" />
     </Card>
+    </div></div>
   }
 }
 
@@ -365,7 +399,8 @@ class Typing extends Component {
       currentGrade: 0,
       goalSpeed: parseInt(db.getItem("goalSpeed")) || 1,
       wdLen: parseInt(db.getItem("currentLen")) || 10,
-      article: db.getItem("article") || ""
+      article: db.getItem("article") || "",
+      gbY: 1000
     }
   }
 
@@ -395,12 +430,28 @@ class Typing extends Component {
     this.refs.text.update();
   }
 
+  componentWillUpdate() {
+    const pos = document.getElementsByClassName("current-chatacter");
+    this.state.gbY = (pos ? (pos[0].offsetTop || 1000) : 1000) || 1000;
+    console.log(this.state.gbY);
+    console.log(this.state)
+  }
+
+  componentDidMount() {
+    const pos = document.getElementsByClassName("current-chatacter");
+    const gby = (pos ? (pos[0].offsetTop || 1000) : 1000) || 1000;
+    this.setState({ gbY: gby });
+    console.log(this.state.gbY);
+
+  }
+
   render() {
+    console.log(this.state);
     return (
       <div className="flex-center">
         <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
         <br />
-        <Keyboard ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
+        <Keyboard y={this.state.gbY} ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
         <br />
         <CurrentGrade ref="grade" goalSpeed={this.props.goalSpeed || 2} onGradeUpdate={this.updateGrade} />
       </div>
