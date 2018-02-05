@@ -3,6 +3,7 @@ import Route from "react-router-dom/Route";
 import Typing from "./typing";
 import Grade from "./grade";
 import Config from "./config";
+import Help from "./help";
 
 class Left extends Component {
   render() {
@@ -11,6 +12,7 @@ class Left extends Component {
         <Route exact path="/" component={Typing} />
         <Route exact path="/grade" component={Grade} />
         <Route exact path="/config" component={Config} />
+        <Route exact path="/help" component={Help} />
       </div>
     );
   }

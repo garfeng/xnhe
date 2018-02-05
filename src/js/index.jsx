@@ -10,12 +10,48 @@ import Navbar from "./navbar";
 import Left from "./left";
 import Right from "./right";
 
+const simpleStyle = `.card-header {
+              display: none;
+            }
+            .card-body {
+              padding: 0.6rem;
+            }
+            .card {
+              margin-bottom: 0.2rem;
+            }
+            .navbar-all {
+              display: none;
+            }
+            hr {
+              margin-top: 0.2rem;
+              margin-bottom: 0.5rem;
+            }`;
+const commonStyle = `.navbar-simple{
+             display: none;
+             }
+             .card{
+              margin-bottom:1rem;
+             }`;
+
+const SimpleStyle = (props) => {
+  if (props.simple) {
+    return (<style>
+      {simpleStyle}
+    </style>);
+  } else {
+    return (<style>
+      {commonStyle}
+    </style>);
+  }
+}
+
 
 class Index extends Component {
   constructor(props) {
     super(props);
     this.state = {
       night: parseInt(db.getItem("night")) || 0,
+      simple: parseInt(db.getItem("simple")) || 0,
       display: "none"
     };
     this.updateMode = this.updateMode.bind(this);
@@ -31,21 +67,21 @@ class Index extends Component {
 
   updateMode() {
     this.setState({
-      night: parseInt(db.getItem("night")) || 0
+      night: parseInt(db.getItem("night")) || 0,
+      simple: parseInt(db.getItem("simple")) || 0
     });
   }
-
-
 
   render() {
     return (
       <Router>
         <div>
           <link onLoad={this.show} href={this.styleMap[this.state.night]} rel="stylesheet" />
-          <Navbar />
+          <SimpleStyle simple={this.state.simple} />
           <Container className="height-100" fluid={true}>
             <Row className="height-100">
               <Col className="height-100" xs={12} sm={12} md={12} lg={{ size: 6, offset: 3 }}>
+                <Navbar />
                 <Left />
               </Col>
               <Col xs={12} sm={12} md={12} lg={3}>
