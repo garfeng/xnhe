@@ -46,6 +46,21 @@ const SimpleStyle = (props) => {
 }
 
 
+Date.prototype.toLocaleDateString = function () {
+  const y = this.getFullYear();
+  const m = this.getMonth() + 1;
+  const date = this.getDate();
+  return `${y}/${m}/${date}`;
+}
+
+Date.prototype.toLocaleTimeString = function () {
+  const h = this.getHours();
+  const m = this.getMinutes();
+  const s = this.getSeconds();
+
+  return `${h}:${m}:${s}`
+}
+
 class Index extends Component {
   constructor(props) {
     super(props);

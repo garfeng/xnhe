@@ -60,6 +60,12 @@ class Text extends Component {
 
         this.wordsSelectRandom = this.wordsSelect;
 
+        this.allInfo = JSON.parse(db.getItem("all_info")) || {
+            number: 0,
+            time: 0,
+            days: {}
+        };
+
         this.updateProb();
         this.update();
     }
@@ -203,6 +209,27 @@ class Text extends Component {
 
     calculateOk() {
         const text = Object.assign([], this.state.text);
+        this.allInfo.number += text.length;
+        const d = new Date();
+        const endTime = d.getTime() / 10;
+        this.allInfo.time += (endTime - this.startTime);
+
+        this.allInfo.days = this.allInfo.days || {};
+        const todayStr = d.toLocaleDateString()
+
+        let today = this.allInfo.days[todayStr] || {
+            time: 0,
+            number: 0,
+            date: todayStr
+        };
+
+        today.time = today.time + (endTime - this.startTime);
+        today.number = today.number + text.length;
+
+        this.allInfo.days[todayStr] = today;
+
+        db.setItem("all_info", JSON.stringify(this.allInfo));
+
         for (let i = 0; i < text.length; i++) {
             const c = text[i].c;
 
@@ -228,7 +255,10 @@ class Text extends Component {
         db.setItem("wordsProbs", JSON.stringify(this.everyWordsProb));
 
         console.log(this.everyWordsProb);
+    }
 
+    onStart() {
+        this.startTime = new Date().getTime() / 10;
     }
 
     onInput(code) {
@@ -390,6 +420,7 @@ class Typing extends Component {
 
     onStart() {
         this.refs.grade.onStart();
+        this.refs.text.onStart();
     }
 
     onKeyDown() {

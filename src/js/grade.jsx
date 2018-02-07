@@ -54,13 +54,119 @@ class Grade extends Component {
 
   render() {
     return (
-      <Card className="full">
-        <CardHeader>成绩</CardHeader>
-        <CardBody className="full">
-          <Speed data={this.state.data} />
-        </CardBody>
-      </Card>
+      <div>
+        <Card className="full">
+          <CardHeader>成绩</CardHeader>
+          <CardBody className="full">
+            <Speed data={this.state.data} />
+          </CardBody>
+        </Card>
+        <AllInfo />
+      </div>
     );
+  }
+}
+
+class AllInfo extends Component {
+  constructor(props) {
+    super(props);
+    this.state = JSON.parse(db.getItem("all_info")) || {
+      number: 0,
+      time: 0
+    };
+    this.OneLine = this.OneLine.bind(this);
+    this.timeInfo = this.timeInfo.bind(this);
+  }
+
+  timeInfo({ time, number }) {
+    const t = parseInt(time) / 100;
+    let tShow = ""
+    if (t < 60) {
+      tShow = t.toString() + "秒";
+    } else if (t < 3600) {
+      const tMinute = parseInt(t / 60);
+      const tSecond = parseInt(t) % 60;
+      tShow = tMinute.toString() + "分" + tSecond.toString() + "秒";
+    } else {
+      let tMinute = parseInt(t / 60);
+      const tHour = parseInt(tMinute / 60);
+      tMinute = tMinute % 60;
+      tShow = tHour.toString() + "时" + tMinute.toString() + "分";
+    }
+
+    const zi = number;
+    let ziShow = ""
+    if (zi < 1000) {
+      ziShow = zi
+    } else if (zi < 10000) {
+      const ziK = parseInt(zi / 10) / 100;
+      ziShow = ziK.toString() + "K";
+    } else {
+      const ziK = parseInt(zi / 100) / 100;
+      ziShow = ziK.toString() + "万";
+    }
+    const speed = parseInt(zi / Math.max(t, 1) * 60)
+    const speedShow = speed.toString() + "字/分";
+
+    return {
+      time: tShow,
+      number: ziShow,
+      speed: speedShow
+    }
+  }
+
+  OneLine(d, i) {
+    const info = this.timeInfo(d);
+    return <tr key={i}>
+      <td>{d.date}</td>
+      <td>{info.time}</td>
+      <td>{info.number}</td>
+      <td>{info.speed}</td>
+    </tr>
+  }
+
+  render() {
+
+    const allInfo = this.timeInfo(this.state);
+
+    const allDays = this.state.days || {};
+    let allDaysArr = [];
+
+    console.log(allDays);
+
+    for (let i in allDays) {
+      allDaysArr.push(allDays[i]);
+    }
+
+    allDaysArr.reverse();
+
+    return (
+      <Card>
+        <CardHeader>
+          统计
+        </CardHeader>
+        <CardBody>
+          <Table striped hover size="sm">
+            <thead>
+              <tr>
+                <th>-</th>
+                <th>总时间</th>
+                <th>总字数</th>
+                <th>均速</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>全部</td>
+                <td>{allInfo.time}</td>
+                <td>{allInfo.number}</td>
+                <td>{allInfo.speed}</td>
+              </tr>
+              {allDaysArr.map(this.OneLine)}
+            </tbody>
+          </Table>
+        </CardBody>
+      </Card>)
   }
 }
 
@@ -79,15 +185,15 @@ class Speed extends Component {
     const timeS = time.toLocaleTimeString();
 
     if (params.length == 2) {
-      return dateS + " " + timeS + '<br/>'
-        + params[0].seriesName + ' : ' + params[0].value + ' (次/秒)<br/>'
+      return dateS + " " + timeS + '<br />'
+        + params[0].seriesName + ' : ' + params[0].value + ' (次/秒)<br />'
         + params[1].seriesName + ' : ' + params[1].value + ' (字/分)';
     } else if (params.length == 1) {
       if (params[0].seriesName == "击键") {
-        return dateS + " " + timeS + '<br/>'
+        return dateS + " " + timeS + '<br />'
           + params[0].seriesName + ' : ' + params[0].value + " (次/秒)";
       } else {
-        return dateS + " " + timeS + '<br/>'
+        return dateS + " " + timeS + '<br />'
           + params[0].seriesName + ' : ' + params[0].value + ' (字/分)';
       }
     } else {
@@ -97,7 +203,6 @@ class Speed extends Component {
   }
 
   ave(...data) {
-    console.log(data);
     var d = 0;
     data.map(v => { d = d + v });
     d = d / data.length;
@@ -218,53 +323,53 @@ export default Grade;
 /*
 
 
-import React, { Component } from "react";
+import React, {Component} from "react";
 import Konva from "konva";
-import { render } from "react-dom";
-import { Stage, Layer, Rect, Text,Line } from "react-konva";
+import {render} from "react-dom";
+import {Stage, Layer, Rect, Text,Line } from "react-konva";
 
 class ColoredRect extends React.Component {
-  state = {
-    color: "green"
-  };
-  handleClick = () => {
-    this.setState({
-      color: Konva.Util.getRandomColor()
-    });
-  };
+            state = {
+              color: "green"
+            };
+          handleClick = () => {
+            this.setState({
+              color: Konva.Util.getRandomColor()
+            });
+          };
   render() {
     return (
 
-      <Line points={[1, 20, 20, 10, 50, 50]} lineCap= 'round'
-        lineJoin='round' stroke="red" strokeWidth={3} tension={1} />
+      <Line points={[1, 20, 20, 10, 50, 50]} lineCap='round'
+            lineJoin='round' stroke="red" strokeWidth={3} tension={1} />
 
-    );
+          );
   }
 }
 class App extends Component {
-  render() {
-    return (
+            render() {
+          return (
       <Stage width={window.innerWidth} height={window.innerHeight}>
-        <Layer>
-          <Text text="Try click on rect" />
-          <ColoredRect />
-        </Layer>
-      </Stage>
-    );
+            <Layer>
+              <Text text="Try click on rect" />
+              <ColoredRect />
+            </Layer>
+          </Stage>
+          );
   }
 }
     */
     /*  <Table striped hover size="sm">
-          <thead>
-            <tr>
-              <th>时间</th>
-              <th>击键</th>
-              <th>打字</th>
-              <th>错误率</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.data.map(d => <OneLine key={d.time} data={d} />)}
-          </tbody>
-        </Table>
-    */
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>击键</th>
+                <th>打字</th>
+                <th>错误率</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.data.map(d => <OneLine key={d.time} data={d} />)}
+            </tbody>
+          </Table>
+          */
