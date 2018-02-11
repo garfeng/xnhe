@@ -275,13 +275,19 @@ class Text extends Component {
             };
             allOk = allOk && zi.ok;
             if (!zi.ok) {
-                this.grade.errorNumber += 1;
                 this.everyWordsError[i] = true;
             }
 
             text[i] = zi;
         }
         if (code.length == this.state.text.length && allOk) {
+            this.grade.errorNumber = 0;
+            for (let i in this.everyWordsError) {
+                if (this.everyWordsError[i]) {
+                    this.grade.errorNumber += 1;
+                }
+            }
+
             this.calculateOk();
             this.props.onReset(this.grade);
             this.update();
