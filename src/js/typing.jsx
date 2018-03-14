@@ -192,7 +192,7 @@ class Text extends Component {
                 if (!this.isWordOk(this.wordsSelect[i])) {
                     console.log("Error:", this.wordsSelect[i])
                     allOk = false;
-                    //break;
+                    break;
                 }
             }
             if (allOk) {
@@ -266,8 +266,10 @@ class Text extends Component {
         for (let i = 0; i < this.wordsSelect.length; i++) {
             const c = this.wordsSelect[i];
             if (this.isWordOk(c)) {
+                console.log("OK:", c, this.wordsSelectRandom.indexOf(c), this.wordsSelectRandom.lastIndexOf(c))
+
                 if (this.wordsSelectRandom.indexOf(c) != this.wordsSelectRandom.lastIndexOf(c)) {
-                    this.wordsSelectRandom.replace(c, "");
+                    this.wordsSelectRandom = this.wordsSelectRandom.replace(c, "");
                 }
             } else {
                 this.wordsSelectRandom += c;
@@ -390,6 +392,7 @@ class Keyboard extends Component {
             simple: parseInt(db.getItem("simple")) || 0
         };
         this.start = false;
+        this.onBlur = this.onBlur.bind(this)
     }
 
     onKeyDown(e) {
@@ -413,6 +416,11 @@ class Keyboard extends Component {
     }
 
     componentDidMount() {
+        this.refs["input"].focus();
+    }
+
+    onBlur() {
+        console.log("Blur");
         this.refs["input"].focus();
     }
 
@@ -470,7 +478,6 @@ class Typing extends Component {
     }
 
     render() {
-        console.log(this.state);
         return (
             <div className="flex-center">
                 <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} goalWordSpeed={this.state.goalWordSpeed || 30} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
