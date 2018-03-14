@@ -85,8 +85,13 @@ class Text extends Component {
         Object.assign(obj, this.everyWordsProb);
         this.everyWordsProb = obj;
         db.setItem("wordsProbs", JSON.stringify(obj));
-        this.wordsSelectRandom = "";
+        //this.wordsSelectRandom = "";
 
+        if (text.length > 0) {
+            this.wordsSelectRandom += text[text.length - 1] + text[text.length - 1];
+        }
+
+        /*
         for (const index in text) {
             const key = text[index];
             const needNum = Math.max(1, text.indexOf(key) + 6 - text.length);
@@ -97,12 +102,16 @@ class Text extends Component {
                 this.wordsSelectRandom += key;
             }
         }
+        */
     }
 
     updateWordsSelect() {
         let len = Math.max(this.wordsSelect.length + 1, 5);
         len = Math.min(len, words.length);
         this.wordsSelect = words.substr(0, len);
+        if (len <= 10) {
+            this.wordsSelectRandom += this.wordsSelect;
+        }
         db.setItem("wordsSelect", this.wordsSelect);
         console.log("updateWordsSelect")
         this.updateProb();
@@ -111,7 +120,7 @@ class Text extends Component {
     isWordOk(c) {
         const dCount = this.everyWordsCount[c] || 0;
         const prob = this.everyWordsProb[c] || 0.5;
-        return prob >= 0.7 && dCount >= 10;
+        return prob >= 0.7 && dCount >= 2;
     }
 
     selectFromWords() {
@@ -168,12 +177,22 @@ class Text extends Component {
         //    return this.selectFromArticle();
     }
     text() {
-        if (this.props.currentGrade >= this.props.goalSpeed || this.wordsSelect.length < 5) {
+        //        this.props.goalWordSpeed;
+        const num = this.props.wdLen || 10;
+        const now = new Date().getTime() / 10;
+        const wordsSpeed = num * 100 * 60 / (now - this.startTime);
+
+        console.log("current word speed = ", wordsSpeed, this.props.goalWordSpeed, this.props.currentGrade, this.props.goalSpeed);
+
+
+        if ((this.props.currentGrade >= this.props.goalSpeed && wordsSpeed >= this.props.goalWordSpeed) || this.wordsSelect.length < 5) {
             let allOk = true;
+            console.log("check ok");
             for (let i = 0; i < this.wordsSelect.length; i++) {
                 if (!this.isWordOk(this.wordsSelect[i])) {
+                    console.log("Error:", this.wordsSelect[i])
                     allOk = false;
-                    break;
+                    //break;
                 }
             }
             if (allOk) {
@@ -247,7 +266,9 @@ class Text extends Component {
         for (let i = 0; i < this.wordsSelect.length; i++) {
             const c = this.wordsSelect[i];
             if (this.isWordOk(c)) {
-                this.wordsSelectRandom.replace(c, "");
+                if (this.wordsSelectRandom.indexOf(c) != this.wordsSelectRandom.lastIndexOf(c)) {
+                    this.wordsSelectRandom.replace(c, "");
+                }
             } else {
                 this.wordsSelectRandom += c;
             }
@@ -376,7 +397,7 @@ class Keyboard extends Component {
             this.start = true;
             this.props.onStart();
         }
-        this.props.onKeyDown();
+        this.props.onKeyDown(e);
     }
 
     onChange(e) {
@@ -415,6 +436,7 @@ class Typing extends Component {
         this.state = {
             currentGrade: 0,
             goalSpeed: parseInt(db.getItem("goalSpeed")) || 1,
+            goalWordSpeed: parseInt(db.getItem("goalWordSpeed")) || 30,
             wdLen: parseInt(db.getItem("currentLen")) || 10,
             article: db.getItem("article") || ""
         }
@@ -429,8 +451,8 @@ class Typing extends Component {
         this.refs.text.onStart();
     }
 
-    onKeyDown() {
-        this.refs.grade.onKeyDown();
+    onKeyDown(e) {
+        this.refs.grade.onKeyDown(e);
     }
 
     onReset(grade) {
@@ -451,7 +473,7 @@ class Typing extends Component {
         console.log(this.state);
         return (
             <div className="flex-center">
-                <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
+                <Text currentGrade={this.state.currentGrade} goalSpeed={this.state.goalSpeed || 2} goalWordSpeed={this.state.goalWordSpeed || 30} article={this.state.article} wdLen={this.state.wdLen} ref="text" onReset={this.onReset} />
                 <Keyboard ref="input" onInput={this.onInput} onStart={this.onStart} onKeyDown={this.onKeyDown} />
                 <CurrentGrade ref="grade" goalSpeed={this.props.goalSpeed || 2} onGradeUpdate={this.updateGrade} />
             </div>
@@ -465,7 +487,8 @@ class CurrentGrade extends Component {
         this.state = {
             speed: parseFloat(db.getItem("speed") || "0"),
             error: parseFloat(db.getItem("error") || "0"),
-            wordsSpeed: parseFloat(db.getItem("wordsSpeed") || "0")
+            wordsSpeed: parseFloat(db.getItem("wordsSpeed") || "0"),
+            eachWordKey: parseFloat(db.getItem("eachWordKey") || "0")
         };
         this.currentGrade = {
             startTime: 0,
@@ -478,6 +501,7 @@ class CurrentGrade extends Component {
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onEnd = this.onEnd.bind(this);
         this.currentTime = this.currentTime.bind(this);
+        this.testId = 0;
     }
 
     currentTime() {
@@ -488,11 +512,27 @@ class CurrentGrade extends Component {
         this.currentGrade.startTime = this.currentTime();
     }
 
-    onKeyDown() {
+    onKeyDown(e) {
         const current = this.currentTime();
-        const keyNum = this.currentGrade.keyNum + 1;
-        const speed = keyNum * 1000 / (current - this.currentGrade.startTime);
+        var keyNum = this.currentGrade.keyNum;
+        var speed;
+        keyNum++;
 
+        /*
+                if (e) {
+                    this.testId++;
+                    console.log(e.key, this.testId)
+                }
+        
+                if (typeof e != "undefined" && typeof e.key != "undefined") {
+                    const validKey = "qwertyuiopasdfghjklzxcvbnm1234567890";
+                    if (validKey.indexOf(e.key) >= 0) {
+                        console.log("++")
+                    }
+        
+                }
+        */
+        speed = keyNum * 1000 / (current - this.currentGrade.startTime);
         Object.assign(this.currentGrade, {
             endTime: current,
             keyNum: keyNum,
@@ -535,10 +575,15 @@ class CurrentGrade extends Component {
         const error = grade.errorNumber / grade.length;
         const current = this.currentTime();
 
+        const wordsSpeed = grade.length * 1000 * 60 / (current - this.currentGrade.startTime);
+
+        const eachWordKey = Math.floor((this.currentGrade.speed * 60) / wordsSpeed * 100) / 100;
+
         const data = {
             speed: this.currentGrade.speed,
             error: error,
-            wordsSpeed: grade.length * 1000 * 60 / (current - this.currentGrade.startTime)
+            wordsSpeed: wordsSpeed,
+            eachWordKey: eachWordKey
         };
 
         this.setState(data);
@@ -546,6 +591,7 @@ class CurrentGrade extends Component {
         db.setItem("speed", this.currentGrade.speed.toString());
         db.setItem("error", error.toString());
         db.setItem("wordsSpeed", data.wordsSpeed.toString());
+        db.setItem("eachWordKey", data.eachWordKey.toString());
 
         this.saveGradeList(data);
 
@@ -562,6 +608,7 @@ class CurrentGrade extends Component {
             <CardBody className="flex">
                 击键：{parseInt(this.state.speed * 100) / 100} {" | "}
                 打字：{parseInt(this.state.wordsSpeed * 100) / 100} {" | "}
+                码长：{this.state.eachWordKey} {" | "}
                 错误：{parseInt(this.state.error * 100)}%
       </CardBody>
         </Card>

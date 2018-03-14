@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Row, Col, Card, CardHeader, CardBody, Form, FormText, FormGroup, Label, Input, Button, CardBlock } from "reactstrap";
+import { Row, Col, Card, CardHeader, CardBody, Form, FormText, FormGroup, Label, Input, Button, CardBlock, InputGroup, InputGroupAddon, InputGroupText } from "reactstrap";
 import db from './storage';
 
 class SelectButton extends Component {
@@ -34,6 +34,7 @@ class Config extends Component {
         super(props);
         this.state = {
             goalSpeed: parseInt(db.getItem("goalSpeed")) || 1,
+            goalWordSpeed: parseInt(db.getItem("goalWordSpeed")) || 30,
             currentLen: parseInt(db.getItem("currentLen")) || 10,
             article: db.getItem("article") || "",
             night: parseInt(db.getItem("night")) || 0,
@@ -46,8 +47,10 @@ class Config extends Component {
         this.triggerMode = this.triggerMode.bind(this)
         this.modeMap = ["可爱", "日间", "夜间", "木板墙"];
         this.simpleMode = ["正常", "极简"];
+        this.onGoalWordSpeed = this.onGoalWordSpeed.bind(this);
 
     }
+
 
     triggerNight(d) {
         const index = Math.max(this.modeMap.indexOf(d), 0);
@@ -74,6 +77,12 @@ class Config extends Component {
         db.setItem("goalSpeed", d.toString());
     }
 
+    onGoalWordSpeed(e) {
+        const speed = (parseInt(e.target.value) || 30);
+        this.setState({ goalWordSpeed: speed })
+        db.setItem("goalWordSpeed", speed.toString())
+    }
+
     triggerMode(d) {
         const index = Math.max(this.simpleMode.indexOf(d), 0);
         this.setState({ simple: index });
@@ -94,6 +103,14 @@ class Config extends Component {
                         <FormText>
                             达到后，且正确率>70%，才会添加一个字继续练习。
                         </FormText>
+                    </OneInputLine>
+                    <OneInputLine _id="goal_word_speed" name="目标速度">
+                        <InputGroup>
+                            <Input onChange={this.onGoalWordSpeed} value={this.state.goalWordSpeed} />
+                            <InputGroupAddon addonType="append">
+                                字/分
+                            </InputGroupAddon>
+                        </InputGroup>
                     </OneInputLine>
                     <OneInputLine _id="words_len" name="每段长度">
                         {lenMap.map(d => <SelectButton onClick={this.selectLen} currentValue={this.state.currentLen} value={d} key={d} />)}
