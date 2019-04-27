@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import { Button, Card, CardBody, CardHeader, FormText, UncontrolledTooltip, Input } from "reactstrap";
-import words from './words';
+import {GetWordsArray} from './words';
 import db from './storage';
+
 
 class OneCharacter extends Component {
     constructor(props) {
@@ -47,7 +48,13 @@ class Text extends Component {
             errorNumber: 0,
             length: 0
         };
-        this.wordsSelect = db.getItem("wordsSelect") || "";
+
+        var tmp = db.getItem("wordsSelect");
+        if(tmp[0] != "[") {
+            db.setItem("wordsSelect", "[]");
+        }
+        
+        this.wordsSelect = JSON.parse(db.getItem("wordsSelect") || "[]");
 
         this.everyWordsProb = JSON.parse(db.getItem("wordsProbs") || "{}") || {};
 
@@ -65,9 +72,11 @@ class Text extends Component {
             time: 0,
             days: {}
         };
+        this.words = GetWordsArray();
 
         this.updateProb();
         this.update();
+
     }
 
     updateOldDataToNew() {
@@ -80,7 +89,7 @@ class Text extends Component {
 
     updateProb() {
         let obj = {}
-        const text = this.wordsSelect.split("");
+        const text = this.wordsSelect;
         text.map(d => obj[d] = 0.5);
         Object.assign(obj, this.everyWordsProb);
         this.everyWordsProb = obj;
@@ -88,7 +97,10 @@ class Text extends Component {
         //this.wordsSelectRandom = "";
 
         if (text.length > 0) {
-            this.wordsSelectRandom += text[text.length - 1] + text[text.length - 1];
+            this.wordsSelectRandom.push(text[text.length - 1]);
+            this.wordsSelectRandom.push(text[text.length - 1]);
+
+            //this.wordsSelectRandom += text[text.length - 1] + text[text.length - 1];
         }
 
         /*
@@ -105,14 +117,32 @@ class Text extends Component {
         */
     }
 
+    substrArr(arr, start, len) {
+        let dest = [];
+        if(arr.length < start) {
+            start = 0;
+            len = 0;
+        } else if(arr.length < start + len) {
+            len = arr.length - start;
+        }
+
+        for(let i = start ;i<start + len;i++) {
+            dest.push(arr[i]);
+        }
+
+        return dest;
+    }
+
     updateWordsSelect() {
         let len = Math.max(this.wordsSelect.length + 1, 5);
-        len = Math.min(len, words.length);
-        this.wordsSelect = words.substr(0, len);
+        len = Math.min(len, this.words.length);
+        this.wordsSelect = this.substrArr(this.words, 0, len);
         if (len <= 10) {
-            this.wordsSelectRandom += this.wordsSelect;
+            this.wordsSelectRandom = this.wordsSelectRandom.concat(this.wordsSelectRandom, this.wordsSelect);
+            //this.wordsSelectRandom += this.wordsSelect;
         }
-        db.setItem("wordsSelect", this.wordsSelect);
+
+        db.setItem("wordsSelect", JSON.stringify(this.wordsSelect));
         console.log("updateWordsSelect")
         this.updateProb();
     }
@@ -124,7 +154,7 @@ class Text extends Component {
     }
 
     selectFromWords() {
-        let res = "";
+        let res = [];
         let wdLen = this.wordsSelectRandom.length || 1;
         const num = this.props.wdLen || 10;
         let i = 0;
@@ -135,7 +165,7 @@ class Text extends Component {
             const index = Math.min(wdLen - 1, Math.floor(Math.random() * (1 + wdLen)));
             const c = this.wordsSelectRandom[index];
             //if (!this.isWordOk(c)) {
-            res = res + c;
+            res.push(c);
             i++;
             //}
         }
@@ -183,7 +213,6 @@ class Text extends Component {
         const wordsSpeed = num * 100 * 60 / (now - this.startTime);
 
         console.log("current word speed = ", wordsSpeed, this.props.goalWordSpeed, this.props.currentGrade, this.props.goalSpeed);
-
 
         if ((this.props.currentGrade >= this.props.goalSpeed && wordsSpeed >= this.props.goalWordSpeed) || this.wordsSelect.length < 5) {
             let allOk = true;
@@ -289,13 +318,16 @@ class Text extends Component {
         let text = Object.assign([], this.state.text);
         let allOk = true;
 
+        let should_c = "";
+
         for (let i = 0; i < count; i++) {
             const c = this.state.text[i].c;
             const zi = {
                 c: c,
-                ok: c == code[i],
+                ok: c == code.substr(should_c.length, c.length),
                 index: i
             };
+            should_c += c;
             allOk = allOk && zi.ok;
             if (!zi.ok) {
                 this.everyWordsError[i] = true;
@@ -340,7 +372,7 @@ class Text extends Component {
     render() {
         //  const helpInfo = this.props.article ? "从文章中选择以下文字：" : "随机选择以下文字：";
         const helpInfo = "随机选择以下文字："
-        const text = this.wordsSelect.split("");
+        const text = this.wordsSelect;
         return <Card>
             <CardHeader>文本</CardHeader>
             <CardBody>
