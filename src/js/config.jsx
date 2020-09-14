@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { Row, Col, Card, CardHeader, CardBody, Form, FormText, FormGroup, Label, Input, Button, CardBlock, InputGroup, InputGroupAddon, InputGroupText } from "reactstrap";
 import db from './storage';
 
+import {GetWords,SetWords} from "./words";
+
 class SelectButton extends Component {
     constructor(props) {
         super(props);
@@ -26,6 +28,31 @@ class OneInputLine extends Component {
                 </Col>
             </Row>
         </FormGroup >
+    }
+}
+
+class InputData extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: GetWords()
+        }
+        this.onDataChange = this.onDataChange.bind(this);
+    }
+
+    onDataChange(e){
+        db.setItem("wordsSelect","[]");
+        this.setState({data:e.target.value});
+        SetWords(e.target.value);
+    }
+
+    render() {
+        return <OneInputLine _id="goal_input_article" name="正文">
+                <Input type="textarea" onChange={this.onDataChange} value={this.state.data} />
+                <FormText>
+                    字词间以空格间隔。
+                </FormText>
+        </OneInputLine>
     }
 }
 
@@ -98,6 +125,7 @@ class Config extends Component {
             <CardHeader>设置</CardHeader>
             <CardBody>
                 <Form>
+                    <InputData />
                     <OneInputLine _id="goal_speed" name="目标击键">
                         {speedMap.map(d => <SelectButton onClick={this.selectSpeed} currentValue={this.state.goalSpeed} value={d} key={d} />)}
                         <FormText>
